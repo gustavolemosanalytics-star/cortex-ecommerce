@@ -5,7 +5,7 @@ import { predictionsApi } from '../services/api';
 import { Layout } from '../components/layout';
 import { Card, CardHeader, Badge, Button, Select } from '../components/ui';
 import { RevenueChart, CustomBarChart } from '../components/charts';
-import { AnimatedCounter, GlowCard, SpotlightCard } from '../components/animations';
+import { AnimatedCounter, CurrencyCounter, GlowCard, SpotlightCard } from '../components/animations';
 import { formatCurrency, formatPercent } from '../utils/formatters';
 import {
   Brain,
@@ -58,12 +58,11 @@ export function Predictions() {
     orders: p.predicted_orders,
   })) || [];
 
-  // Churn risk by segment
-  const churnBySegment = churnRisk?.by_segment || [];
-  const churnChartData = churnBySegment.map((s: any) => ({
-    name: s.segment,
-    value: s.at_risk_customers,
-  }));
+  // Churn risk data for chart
+  const churnChartData = [
+    { name: 'Em Risco', value: churnRisk?.summary?.at_risk_count || 0 },
+    { name: 'Alto Risco', value: churnRisk?.summary?.high_risk_count || 0 },
+  ];
 
   // Summary stats
   const totalPredictedRevenue = forecastChartData.reduce(
@@ -73,8 +72,8 @@ export function Predictions() {
   const avgDailyRevenue = forecastChartData.length > 0
     ? totalPredictedRevenue / forecastChartData.length
     : 0;
-  const totalAtRisk = churnRisk?.summary?.total_at_risk || 0;
-  const atRiskRevenue = churnRisk?.summary?.at_risk_revenue || 0;
+  const totalAtRisk = (churnRisk?.summary?.at_risk_count || 0) + (churnRisk?.summary?.high_risk_count || 0);
+  const atRiskRevenue = churnRisk?.summary?.total_revenue_at_risk || 0;
 
   const priorityColors: Record<string, string> = {
     high: '#ef4444',
@@ -105,11 +104,7 @@ export function Predictions() {
                 <span className="text-sm text-dark-400">Receita Prevista</span>
               </div>
               <div className="text-2xl font-bold text-white">
-                <AnimatedCounter
-                  value={totalPredictedRevenue}
-                  prefix="R$ "
-                  decimals={0}
-                />
+                <CurrencyCounter value={totalPredictedRevenue} />
               </div>
               <p className="text-xs text-dark-400 mt-2">
                 Proximos {forecastDays} dias
@@ -126,11 +121,7 @@ export function Predictions() {
                 <span className="text-sm text-dark-400">Media Diaria</span>
               </div>
               <div className="text-2xl font-bold text-white">
-                <AnimatedCounter
-                  value={avgDailyRevenue}
-                  prefix="R$ "
-                  decimals={0}
-                />
+                <CurrencyCounter value={avgDailyRevenue} />
               </div>
               <p className="text-xs text-dark-400 mt-2">
                 Previsao de vendas
@@ -147,7 +138,7 @@ export function Predictions() {
                 <span className="text-sm text-dark-400">Clientes em Risco</span>
               </div>
               <div className="text-2xl font-bold text-white">
-                <AnimatedCounter value={totalAtRisk} decimals={0} />
+                <AnimatedCounter value={totalAtRisk} />
               </div>
               <p className="text-xs text-dark-400 mt-2">
                 Risco de churn
@@ -164,11 +155,7 @@ export function Predictions() {
                 <span className="text-sm text-dark-400">Receita em Risco</span>
               </div>
               <div className="text-2xl font-bold text-white">
-                <AnimatedCounter
-                  value={atRiskRevenue}
-                  prefix="R$ "
-                  decimals={0}
-                />
+                <CurrencyCounter value={atRiskRevenue} />
               </div>
               <p className="text-xs text-dark-400 mt-2">
                 LTV dos clientes em risco
@@ -237,7 +224,7 @@ export function Predictions() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-white">
-                        {customer.customer_name}
+                        Cliente #{customer.external_id || customer.customer_id}
                       </p>
                       <p className="text-xs text-dark-400">
                         {customer.days_since_last_order} dias sem comprar
@@ -246,10 +233,10 @@ export function Predictions() {
                   </div>
                   <div className="text-right">
                     <Badge variant="danger" size="sm">
-                      {formatPercent(customer.churn_probability * 100)} risco
+                      Score: {customer.risk_score}
                     </Badge>
                     <p className="text-xs text-dark-400 mt-1">
-                      LTV: {formatCurrency(customer.lifetime_value)}
+                      LTV: {formatCurrency(customer.total_revenue)}
                     </p>
                   </div>
                 </motion.div>
@@ -265,7 +252,7 @@ export function Predictions() {
               action={<Lightbulb className="w-5 h-5 text-amber-400" />}
             />
             <div className="space-y-4">
-              {recommendations?.map((rec: any, index: number) => (
+              {(recommendations?.recommendations || []).map((rec: any, index: number) => (
                 <motion.div
                   key={rec.id}
                   initial={{ opacity: 0, y: 20 }}
