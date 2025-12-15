@@ -5,9 +5,22 @@ from datetime import date, timedelta
 from decimal import Decimal
 from typing import List, Optional
 import numpy as np
+import math
 
 from ..database import get_db
+
+
 from ..models import Customer, Order, Product, DateDimension
+
+
+def safe_float(value):
+    """Convert numpy values to JSON-safe Python floats."""
+    if value is None:
+        return None
+    val = float(value)
+    if math.isnan(val) or math.isinf(val):
+        return None
+    return val
 
 router = APIRouter(prefix="/predictions", tags=["Predictions"])
 
@@ -61,7 +74,8 @@ def get_sales_forecast(
             dow_avg[dow] = []
         dow_avg[dow].append(revenues[i])
 
-    dow_factors = {dow: np.mean(vals) / np.mean(revenues) for dow, vals in dow_avg.items()}
+    mean_revenues = np.mean(revenues)
+    dow_factors = {dow: (np.mean(vals) / mean_revenues if mean_revenues > 0 else 1.0) for dow, vals in dow_avg.items()}
 
     # Generate predictions
     predictions = []
@@ -86,14 +100,14 @@ def get_sales_forecast(
 
         predictions.append({
             "date": future_date.isoformat(),
-            "predicted_revenue": round(prediction, 2),
-            "lower_bound": round(lower_bound, 2),
-            "upper_bound": round(upper_bound, 2),
+            "predicted_revenue": safe_float(round(prediction, 2)),
+            "lower_bound": safe_float(round(lower_bound, 2)),
+            "upper_bound": safe_float(round(upper_bound, 2)),
             "day_of_week": future_date.strftime("%A")
         })
 
     # Calculate total predictions
-    total_predicted = sum(p["predicted_revenue"] for p in predictions)
+    total_predicted = sum(p["predicted_revenue"] or 0 for p in predictions)
 
     # Compare with same period last year (if available)
     last_year_start = end_date - timedelta(days=365)
@@ -116,7 +130,7 @@ def get_sales_forecast(
         "model_info": {
             "method": "Linear Regression with DOW Seasonality",
             "training_days": len(revenues),
-            "trend_slope": round(slope, 4)
+            "trend_slope": safe_float(round(slope, 4))
         }
     }
 

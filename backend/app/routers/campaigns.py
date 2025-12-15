@@ -103,7 +103,7 @@ def get_campaign_performance(
             "roas": round(revenue / spend, 2) if spend > 0 else None,
             "cpa": round(spend / orders, 2) if orders > 0 else None,
             "ctr": round((clicks / impressions * 100), 2) if impressions > 0 else None,
-            "cpc": round(spend / clicks, 2) if clicks > 0 else None
+            "cpc": round(spend / float(clicks), 2) if clicks > 0 else None
         })
 
     return campaigns
