@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func, case, and_
+from sqlalchemy import func, case, and_, text
 from datetime import date, timedelta
 from decimal import Decimal
 from typing import List, Optional
@@ -113,7 +113,7 @@ def get_cohort_analysis(
             ).filter(
                 func.date_format(Customer.first_order_date, '%Y-%m') == cohort_month,
                 func.timestampdiff(
-                    "MONTH",
+                    text("MONTH"),
                     Customer.first_order_date,
                     Order.order_created_at
                 ) == month_offset,
@@ -128,7 +128,7 @@ def get_cohort_analysis(
             ).filter(
                 func.date_format(Customer.first_order_date, '%Y-%m') == cohort_month,
                 func.timestampdiff(
-                    "MONTH",
+                    text("MONTH"),
                     Customer.first_order_date,
                     Order.order_created_at
                 ) == month_offset,
