@@ -4,11 +4,12 @@ import { clsx } from 'clsx';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { SpotlightCard } from '../animations';
 import { CurrencyCounter, AnimatedCounter, PercentCounter } from '../animations';
+import { toNumber } from '../../utils/formatters';
 
 interface KPICardProps {
   title: string;
-  value: number;
-  change?: number | null;
+  value: number | string;
+  change?: number | string | null;
   changeLabel?: string;
   icon: ReactNode;
   format?: 'currency' | 'number' | 'percent';
@@ -26,21 +27,23 @@ export function KPICard({
   iconColor = 'bg-primary-500/20 text-primary-400',
   delay = 0,
 }: KPICardProps) {
-  const isPositive = change !== null && change !== undefined && change > 0;
-  const isNegative = change !== null && change !== undefined && change < 0;
+  const numericValue = toNumber(value);
+  const numericChange = toNumber(change);
+  const isPositive = change !== null && change !== undefined && numericChange > 0;
+  const isNegative = change !== null && change !== undefined && numericChange < 0;
 
   const TrendIcon = isPositive ? TrendingUp : isNegative ? TrendingDown : Minus;
 
   const renderValue = () => {
     switch (format) {
       case 'currency':
-        return <CurrencyCounter value={value} className="text-2xl md:text-3xl font-bold text-white" />;
+        return <CurrencyCounter value={numericValue} className="text-2xl md:text-3xl font-bold text-white" />;
       case 'percent':
-        return <PercentCounter value={value} className="text-2xl md:text-3xl font-bold text-white" />;
+        return <PercentCounter value={numericValue} className="text-2xl md:text-3xl font-bold text-white" />;
       default:
         return (
           <AnimatedCounter
-            value={value}
+            value={numericValue}
             className="text-2xl md:text-3xl font-bold text-white"
           />
         );
@@ -74,7 +77,7 @@ export function KPICard({
               )}
             >
               <TrendIcon className="w-4 h-4" />
-              {Math.abs(change).toFixed(1)}%
+              {Math.abs(numericChange).toFixed(1)}%
             </span>
             <span className="text-xs text-dark-500">{changeLabel}</span>
           </div>
@@ -88,13 +91,14 @@ export function KPICard({
 interface MiniKPIProps {
   label: string;
   value: string | number;
-  change?: number;
+  change?: number | string;
   className?: string;
 }
 
 export function MiniKPI({ label, value, change, className = '' }: MiniKPIProps) {
-  const isPositive = change !== undefined && change > 0;
-  const isNegative = change !== undefined && change < 0;
+  const numericChange = toNumber(change);
+  const isPositive = change !== undefined && numericChange > 0;
+  const isNegative = change !== undefined && numericChange < 0;
 
   return (
     <div className={clsx('flex items-center justify-between', className)}>
@@ -111,7 +115,7 @@ export function MiniKPI({ label, value, change, className = '' }: MiniKPIProps) 
             )}
           >
             {isPositive && '+'}
-            {change.toFixed(1)}%
+            {numericChange.toFixed(1)}%
           </span>
         )}
       </div>

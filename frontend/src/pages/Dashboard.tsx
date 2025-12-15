@@ -17,7 +17,7 @@ import { KPICard, KPIGrid, AlertsList } from '../components/dashboard';
 import { RevenueChart } from '../components/charts';
 import { CustomBarChart, CustomPieChart } from '../components/charts';
 import { GradientText } from '../components/animations';
-import { formatCurrency, formatNumber, formatROAS } from '../utils/formatters';
+import { formatCurrency, formatNumber, formatROAS, toNumber } from '../utils/formatters';
 import { channelColors } from '../utils/colors';
 import { useState } from 'react';
 
@@ -173,7 +173,7 @@ export function Dashboard() {
               <span className="text-xs">Taxa de Recompra</span>
             </div>
             <p className="text-xl font-bold text-white">
-              {kpis?.repeat_rate?.toFixed(1) || 0}%
+              {toNumber(kpis?.repeat_rate).toFixed(1)}%
             </p>
           </motion.div>
 
