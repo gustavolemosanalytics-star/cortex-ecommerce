@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion, useSpring, useTransform } from 'framer-motion';
+import { motion, useSpring } from 'framer-motion';
 
 interface AnimatedCounterProps {
   value: number;
@@ -15,6 +15,7 @@ export function AnimatedCounter({
   className = '',
 }: AnimatedCounterProps) {
   const [isInView, setIsInView] = useState(false);
+  const [displayValue, setDisplayValue] = useState('0');
   const ref = useRef<HTMLSpanElement>(null);
 
   const spring = useSpring(0, {
@@ -22,9 +23,12 @@ export function AnimatedCounter({
     bounce: 0,
   });
 
-  const display = useTransform(spring, (current) =>
-    formatFn(Math.round(current))
-  );
+  useEffect(() => {
+    const unsubscribe = spring.on('change', (latest) => {
+      setDisplayValue(formatFn(Math.round(latest)));
+    });
+    return unsubscribe;
+  }, [spring, formatFn]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -51,7 +55,7 @@ export function AnimatedCounter({
 
   return (
     <motion.span ref={ref} className={className}>
-      {display}
+      {displayValue}
     </motion.span>
   );
 }
@@ -100,6 +104,7 @@ export function PercentCounter({
   className = '',
 }: PercentCounterProps) {
   const [isInView, setIsInView] = useState(false);
+  const [displayValue, setDisplayValue] = useState('0');
   const ref = useRef<HTMLSpanElement>(null);
 
   const spring = useSpring(0, {
@@ -107,9 +112,12 @@ export function PercentCounter({
     bounce: 0,
   });
 
-  const display = useTransform(spring, (current) =>
-    current.toFixed(decimals)
-  );
+  useEffect(() => {
+    const unsubscribe = spring.on('change', (latest) => {
+      setDisplayValue(latest.toFixed(decimals));
+    });
+    return unsubscribe;
+  }, [spring, decimals]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -136,7 +144,7 @@ export function PercentCounter({
 
   return (
     <motion.span ref={ref} className={className}>
-      {display}%
+      {displayValue}%
     </motion.span>
   );
 }
