@@ -21,6 +21,7 @@ allowed_origins = [
     "https://dash-modelo-ecommerce.up.railway.app",
     "https://modelo-ecommerce.capdigital.company",
     "https://cortex-ecommerce-production.up.railway.app",
+    "https://cortex-ecommerce.vercel.app",
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:3000",
