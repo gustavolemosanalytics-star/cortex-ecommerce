@@ -19,6 +19,7 @@ app = FastAPI(
 # CORS configuration
 allowed_origins = [
     "https://dash-modelo-ecommerce.up.railway.app",
+    "https://modelo-ecommerce.capdigital.company",
     "https://cortex-ecommerce-production.up.railway.app",
     "http://localhost:3000",
     "http://localhost:5173",

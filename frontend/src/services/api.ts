@@ -51,7 +51,7 @@ export const dashboardApi = {
 
   getAlerts: async (): Promise<Alert[]> => {
     const { data } = await api.get('/dashboard/alerts');
-    return data;
+    return Array.isArray(data) ? data : [];
   },
 };
 
